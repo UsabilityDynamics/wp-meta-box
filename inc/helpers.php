@@ -397,7 +397,9 @@ if ( ! class_exists( 'RWMB_Helper' ) )
  *
  * @return mixed
  */
-function rwmb_meta( $key, $args = array(), $post_id = null )
-{
-	return RWMB_Helper::meta( $key, $args, $post_id );
+if( !function_exists( 'rwmb_meta' ) ) {
+  function rwmb_meta( $key, $args = array(), $post_id = null ) {
+    return RWMB_Helper::meta( $key, $args, $post_id );
+  }
 }
+
