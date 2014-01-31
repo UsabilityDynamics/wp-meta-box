@@ -102,8 +102,7 @@ if ( ! class_exists( 'RW_Meta_Box' ) )
 			$screen = get_current_screen();
 
 			// Enqueue scripts and styles for registered pages (post types) only
-			if ( 'post' != $screen->base || ! in_array( $screen->post_type, $this->meta_box['pages'] ) )
-				return;
+			//if ( 'post' != $screen->base || ! in_array( $screen->post_type, $this->meta_box['pages'] ) )return;
 
 			wp_enqueue_style( 'rwmb', RWMB_CSS_URL . 'style.css', array(), RWMB_VER );
 
