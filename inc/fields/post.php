@@ -53,7 +53,7 @@ if ( !class_exists( 'RWMB_Post_Field' ) )
 			if ( is_string( $field['post_type'] ) )
 			{
 				$post_type_object = get_post_type_object( $field['post_type'] );
-				$default_post_type = $post_type_object->labels->singular_name;
+				$default_post_type = isset( $post_type_object->labels ) && isset( $post_type_object->labels->singular_name ) ? $post_type_object->labels->singular_name : '';
 			}
 
 			$field = wp_parse_args( $field, array(
