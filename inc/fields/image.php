@@ -140,7 +140,7 @@ if ( ! class_exists( 'RWMB_Image_Field' ) )
 					<img src="%s" />
 					<div class="rwmb-image-bar">
 						<a title="%s" class="rwmb-edit-file" href="%s" target="_blank">%s</a> |
-						<a title="%s" class="rwmb-delete-file" href="#" data-attachment_id="%s">×</a>
+						<a title="%s" class="rwmb-delete-file" href="#" data-attachment_id="%s">&times;</a>
 					</div>
 				</li>
 			';
@@ -158,26 +158,5 @@ if ( ! class_exists( 'RWMB_Image_Field' ) )
 			);
 		}
 
-		/**
-		 * Standard meta retrieval
-		 *
-		 * @param int   $post_id
-		 * @param array $field
-		 * @param bool  $saved
-		 *
-		 * @return mixed
-		 */
-		static function meta( $post_id, $saved, $field )
-		{
-			global $wpdb;
-
-			$meta = $wpdb->get_col( $wpdb->prepare( "
-				SELECT meta_value FROM $wpdb->postmeta
-				WHERE post_id = %d AND meta_key = '%s'
-				ORDER BY meta_id ASC
-			", $post_id, $field['id'] ) );
-
-			return empty( $meta ) ? array() : $meta;
-		}
 	}
 }
