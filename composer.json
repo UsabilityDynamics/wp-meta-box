@@ -20,5 +20,14 @@
       "homepage": "http://www.deluxeblogtips.com/",
       "role": "Developer"
     }
-  ]
+  ],
+  "autoload": {
+    "classmap": [
+      "inc/fields",
+      "inc/common.php",
+      "inc/field.php",
+      "inc/helpers.php",
+      "inc/meta-box.php"
+    ]
+  }
 }
