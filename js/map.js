@@ -117,12 +117,19 @@
 					{
 						response( $.map( results, function( item )
 						{
+
+              // Iterate through matched address components, extract useful keys
+              for( var _key in ( item.address_components || [] ) ) {
+
+              }
+
 							return {
 								label: item.formatted_address,
 								value: item.formatted_address,
 								latitude: item.geometry.location.lat(),
 								longitude: item.geometry.location.lng()
 							};
+
 				 		} ) );
 					} );
 				},
@@ -133,6 +140,7 @@
 					that.map.setCenter( latLng );
 					that.marker.setPosition( latLng );
 					that.updateCoordinate( latLng );
+
 				}
 			} );
 		},
@@ -140,6 +148,11 @@
 		// Update coordinate to input field
 		updateCoordinate: function( latLng )
 		{
+
+      // Set Canvas Attributes for easy-access.
+      this.canvas.setAttribute( 'data-latitude',  latLng.lat() );
+      this.canvas.setAttribute( 'data-longitude', latLng.lng() );
+
 			this.$coordinate.val( latLng.lat() + ',' + latLng.lng() );
 		},
 
@@ -170,7 +183,7 @@
 					}
 				} );
 			}
-		},
+		}
 	};
 
 	$( function()

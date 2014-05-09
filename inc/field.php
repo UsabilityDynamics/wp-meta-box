@@ -129,10 +129,20 @@ if ( !class_exists( 'RWMB_Field ' ) )
 			if ( !empty( $field['class'] ) )
 				$classes[] = $field['class'];
 
+      $attributes = array();
+
+      // If attributes key is set, generate parts to be imploded into DOM attributes.
+      if( $field[ 'attributes' ] ) {
+        foreach( $field[ 'attributes' ] as $key => $value ) {
+          $attributes[] = esc_attr( $key ) . '="' . esc_attr( $value ) . '"';
+        }
+      }
+
 			printf(
-				$field['before'] . '<div class="%s"%s>%s</div>' . $field['after'],
+				$field['before'] . '<div class="%s"%s%s>%s</div>' . $field['after'],
 				implode( ' ', $classes ),
 				$group,
+        implode( ' ', $attributes ),
 				$html
 			);
 		}
