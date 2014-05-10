@@ -129,7 +129,10 @@ if ( !class_exists( 'RWMB_Field ' ) )
 			if ( !empty( $field['class'] ) )
 				$classes[] = $field['class'];
 
-      $attributes = array();
+      $attributes = array(
+        'data-field-id="' . $field[ 'id' ] . '"',
+        'data-field-type="' . $field[ 'type' ] . '"'
+      );
 
       // If attributes key is set, generate parts to be imploded into DOM attributes.
       if( $field[ 'attributes' ] ) {

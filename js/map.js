@@ -115,13 +115,36 @@
 						'address': request.term
 					}, function( results )
 					{
-						response( $.map( results, function( item )
+						response( $.map( results, function geolocationComplete( item )
 						{
+
+              // Prepare Address Object.
+              var _address = {
+                geo: {
+                  latitude: item.geometry.location.lat(),
+                  longitude: item.geometry.location.lng()
+                }
+              };
 
               // Iterate through matched address components, extract useful keys
               for( var _key in ( item.address_components || [] ) ) {
 
+                for( var _typeKey in item.address_components[ _key ].types ) {
+
+                  _address[ item.address_components[ _key ].types[ _typeKey ] ] = {
+                    long_name: item.address_components[ _key ].long_name,
+                    short_name: item.address_components[ _key ].short_name
+                  }
+
+                }
+
               }
+
+              // Emit Address object and original request term.
+              jQuery( that.canvas ).trigger( 'geolocationComplete', {
+                address: _address,
+                term: request.term
+              });
 
 							return {
 								label: item.formatted_address,
@@ -152,6 +175,9 @@
       // Set Canvas Attributes for easy-access.
       this.canvas.setAttribute( 'data-latitude',  latLng.lat() );
       this.canvas.setAttribute( 'data-longitude', latLng.lng() );
+
+      // Emit "updateCoordinates" event.
+      jQuery( this.canvas ).trigger( 'updateCoordinates', latLng );
 
 			this.$coordinate.val( latLng.lat() + ',' + latLng.lng() );
 		},
