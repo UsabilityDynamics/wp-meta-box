@@ -72,6 +72,8 @@ if ( ! class_exists( 'RWMB_Taxonomy_Field' ) )
 
 			$field['field_name'] = "{$field['id']}[]";
 
+
+
 			return $field;
 		}
 

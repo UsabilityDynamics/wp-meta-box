@@ -175,6 +175,17 @@ if ( ! class_exists( 'RW_Meta_Box' ) )
 					$this->meta_box['priority']
 				);
 			}
+
+
+      // Check for taxonomy fields that have setting to disable native taxonomy meta box.
+      foreach( (array) $this->fields as $_field ) {
+
+        if( $_field[ 'type' ] === 'taxonomy' && $_field[ 'native_meta_box' ] === false ) {
+          remove_meta_box( $_field['options']['taxonomy'] . 'div', null, 'side' );
+        }
+
+      }
+
 		}
 
 		/**
