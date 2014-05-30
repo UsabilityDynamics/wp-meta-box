@@ -135,7 +135,7 @@ if ( !class_exists( 'RWMB_Field ' ) )
       );
 
       // If attributes key is set, generate parts to be imploded into DOM attributes.
-      if( $field[ 'attributes' ] ) {
+      if( isset( $field[ 'attributes' ] ) && $field[ 'attributes' ] ) {
         foreach( $field[ 'attributes' ] as $key => $value ) {
           $attributes[] = esc_attr( $key ) . '="' . esc_attr( $value ) . '"';
         }
