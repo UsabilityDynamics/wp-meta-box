@@ -12,22 +12,24 @@
  */
 
 
-add_filter( 'rwmb_meta_boxes', 'YOUR_PREFIX_register_meta_boxes' );
+add_filter( 'rwmb_meta_boxes', 'your_prefix_register_meta_boxes' );
 
 /**
  * Register meta boxes
  *
+ * Remember to change "your_prefix" to actual prefix in your project
+ *
  * @return void
  */
-function YOUR_PREFIX_register_meta_boxes( $meta_boxes )
+function your_prefix_register_meta_boxes( $meta_boxes )
 {
 	/**
-	 * Prefix of meta keys (optional)
+	 * prefix of meta keys (optional)
 	 * Use underscore (_) at the beginning to make keys hidden
 	 * Alt.: You also can make prefix empty to disable it
 	 */
 	// Better has an underscore as last sign
-	$prefix = 'YOUR_PREFIX_';
+	$prefix = 'your_prefix_';
 
 	// 1st meta box
 	$meta_boxes[] = array(
@@ -35,7 +37,7 @@ function YOUR_PREFIX_register_meta_boxes( $meta_boxes )
 		'id' => 'standard',
 
 		// Meta box title - Will appear at the drag and drop handle bar. Required.
-		'title' => __( 'Standard Fields', 'rwmb' ),
+		'title' => __( 'Standard Fields', 'meta-box' ),
 
 		// Post types, accept custom post types as well - DEFAULT is array('post'). Optional.
 		'pages' => array( 'post', 'page' ),
@@ -54,20 +56,20 @@ function YOUR_PREFIX_register_meta_boxes( $meta_boxes )
 			// TEXT
 			array(
 				// Field name - Will be used as label
-				'name'  => __( 'Text', 'rwmb' ),
+				'name'  => __( 'Text', 'meta-box' ),
 				// Field ID, i.e. the meta key
 				'id'    => "{$prefix}text",
 				// Field description (optional)
-				'desc'  => __( 'Text description', 'rwmb' ),
+				'desc'  => __( 'Text description', 'meta-box' ),
 				'type'  => 'text',
 				// Default value (optional)
-				'std'   => __( 'Default text value', 'rwmb' ),
+				'std'   => __( 'Default text value', 'meta-box' ),
 				// CLONES: Add to make the field cloneable (i.e. have multiple value)
 				'clone' => true,
 			),
 			// CHECKBOX
 			array(
-				'name' => __( 'Checkbox', 'rwmb' ),
+				'name' => __( 'Checkbox', 'meta-box' ),
 				'id'   => "{$prefix}checkbox",
 				'type' => 'checkbox',
 				// Value can be 0 or 1
@@ -75,48 +77,48 @@ function YOUR_PREFIX_register_meta_boxes( $meta_boxes )
 			),
 			// RADIO BUTTONS
 			array(
-				'name'    => __( 'Radio', 'rwmb' ),
+				'name'    => __( 'Radio', 'meta-box' ),
 				'id'      => "{$prefix}radio",
 				'type'    => 'radio',
 				// Array of 'value' => 'Label' pairs for radio options.
 				// Note: the 'value' is stored in meta field, not the 'Label'
 				'options' => array(
-					'value1' => __( 'Label1', 'rwmb' ),
-					'value2' => __( 'Label2', 'rwmb' ),
+					'value1' => __( 'Label1', 'meta-box' ),
+					'value2' => __( 'Label2', 'meta-box' ),
 				),
 			),
 			// SELECT BOX
 			array(
-				'name'     => __( 'Select', 'rwmb' ),
+				'name'     => __( 'Select', 'meta-box' ),
 				'id'       => "{$prefix}select",
 				'type'     => 'select',
 				// Array of 'value' => 'Label' pairs for select box
 				'options'  => array(
-					'value1' => __( 'Label1', 'rwmb' ),
-					'value2' => __( 'Label2', 'rwmb' ),
+					'value1' => __( 'Label1', 'meta-box' ),
+					'value2' => __( 'Label2', 'meta-box' ),
 				),
 				// Select multiple values, optional. Default is false.
 				'multiple'    => false,
 				'std'         => 'value2',
-				'placeholder' => __( 'Select an Item', 'rwmb' ),
+				'placeholder' => __( 'Select an Item', 'meta-box' ),
 			),
 			// HIDDEN
 			array(
 				'id'   => "{$prefix}hidden",
 				'type' => 'hidden',
 				// Hidden field must have predefined value
-				'std'  => __( 'Hidden value', 'rwmb' ),
+				'std'  => __( 'Hidden value', 'meta-box' ),
 			),
 			// PASSWORD
 			array(
-				'name' => __( 'Password', 'rwmb' ),
+				'name' => __( 'Password', 'meta-box' ),
 				'id'   => "{$prefix}password",
 				'type' => 'password',
 			),
 			// TEXTAREA
 			array(
-				'name' => __( 'Textarea', 'rwmb' ),
-				'desc' => __( 'Textarea description', 'rwmb' ),
+				'name' => __( 'Textarea', 'meta-box' ),
+				'desc' => __( 'Textarea description', 'meta-box' ),
 				'id'   => "{$prefix}textarea",
 				'type' => 'textarea',
 				'cols' => 20,
@@ -133,8 +135,8 @@ function YOUR_PREFIX_register_meta_boxes( $meta_boxes )
 			// optional override of default jquery.validate messages
 			'messages' => array(
 				"{$prefix}password" => array(
-					'required'  => __( 'Password is required', 'rwmb' ),
-					'minlength' => __( 'Password must be at least 7 characters', 'rwmb' ),
+					'required'  => __( 'Password is required', 'meta-box' ),
+					'minlength' => __( 'Password must be at least 7 characters', 'meta-box' ),
 				),
 			)
 		)
@@ -142,24 +144,24 @@ function YOUR_PREFIX_register_meta_boxes( $meta_boxes )
 
 	// 2nd meta box
 	$meta_boxes[] = array(
-		'title' => __( 'Advanced Fields', 'rwmb' ),
+		'title' => __( 'Advanced Fields', 'meta-box' ),
 
 		'fields' => array(
 			// HEADING
 			array(
 				'type' => 'heading',
-				'name' => __( 'Heading', 'rwmb' ),
+				'name' => __( 'Heading', 'meta-box' ),
 				'id'   => 'fake_id', // Not used but needed for plugin
 			),
 			// SLIDER
 			array(
-				'name' => __( 'Slider', 'rwmb' ),
+				'name' => __( 'Slider', 'meta-box' ),
 				'id'   => "{$prefix}slider",
 				'type' => 'slider',
 
 				// Text labels displayed before and after value
-				'prefix' => __( '$', 'rwmb' ),
-				'suffix' => __( ' USD', 'rwmb' ),
+				'prefix' => __( '$', 'meta-box' ),
+				'suffix' => __( ' USD', 'meta-box' ),
 
 				// jQuery UI slider options. See here http://api.jqueryui.com/slider/
 				'js_options' => array(
@@ -170,7 +172,7 @@ function YOUR_PREFIX_register_meta_boxes( $meta_boxes )
 			),
 			// NUMBER
 			array(
-				'name' => __( 'Number', 'rwmb' ),
+				'name' => __( 'Number', 'meta-box' ),
 				'id'   => "{$prefix}number",
 				'type' => 'number',
 
@@ -179,14 +181,14 @@ function YOUR_PREFIX_register_meta_boxes( $meta_boxes )
 			),
 			// DATE
 			array(
-				'name' => __( 'Date picker', 'rwmb' ),
+				'name' => __( 'Date picker', 'meta-box' ),
 				'id'   => "{$prefix}date",
 				'type' => 'date',
 
 				// jQuery date picker options. See here http://api.jqueryui.com/datepicker
 				'js_options' => array(
-					'appendText'      => __( '(yyyy-mm-dd)', 'rwmb' ),
-					'dateFormat'      => __( 'yy-mm-dd', 'rwmb' ),
+					'appendText'      => __( '(yyyy-mm-dd)', 'meta-box' ),
+					'dateFormat'      => __( 'yy-mm-dd', 'meta-box' ),
 					'changeMonth'     => true,
 					'changeYear'      => true,
 					'showButtonPanel' => true,
@@ -194,7 +196,7 @@ function YOUR_PREFIX_register_meta_boxes( $meta_boxes )
 			),
 			// DATETIME
 			array(
-				'name' => __( 'Datetime picker', 'rwmb' ),
+				'name' => __( 'Datetime picker', 'meta-box' ),
 				'id'   => $prefix . 'datetime',
 				'type' => 'datetime',
 
@@ -208,7 +210,7 @@ function YOUR_PREFIX_register_meta_boxes( $meta_boxes )
 			),
 			// TIME
 			array(
-				'name' => __( 'Time picker', 'rwmb' ),
+				'name' => __( 'Time picker', 'meta-box' ),
 				'id'   => $prefix . 'time',
 				'type' => 'time',
 
@@ -223,34 +225,34 @@ function YOUR_PREFIX_register_meta_boxes( $meta_boxes )
 			),
 			// COLOR
 			array(
-				'name' => __( 'Color picker', 'rwmb' ),
+				'name' => __( 'Color picker', 'meta-box' ),
 				'id'   => "{$prefix}color",
 				'type' => 'color',
 			),
 			// CHECKBOX LIST
 			array(
-				'name' => __( 'Checkbox list', 'rwmb' ),
+				'name' => __( 'Checkbox list', 'meta-box' ),
 				'id'   => "{$prefix}checkbox_list",
 				'type' => 'checkbox_list',
 				// Options of checkboxes, in format 'value' => 'Label'
 				'options' => array(
-					'value1' => __( 'Label1', 'rwmb' ),
-					'value2' => __( 'Label2', 'rwmb' ),
+					'value1' => __( 'Label1', 'meta-box' ),
+					'value2' => __( 'Label2', 'meta-box' ),
 				),
 			),
 			// EMAIL
 			array(
-				'name'  => __( 'Email', 'rwmb' ),
+				'name'  => __( 'Email', 'meta-box' ),
 				'id'    => "{$prefix}email",
-				'desc'  => __( 'Email description', 'rwmb' ),
+				'desc'  => __( 'Email description', 'meta-box' ),
 				'type'  => 'email',
 				'std'   => 'name@email.com',
 			),
 			// RANGE
 			array(
-				'name'  => __( 'Range', 'rwmb' ),
+				'name'  => __( 'Range', 'meta-box' ),
 				'id'    => "{$prefix}range",
-				'desc'  => __( 'Range description', 'rwmb' ),
+				'desc'  => __( 'Range description', 'meta-box' ),
 				'type'  => 'range',
 				'min'   => 0,
 				'max'   => 100,
@@ -259,37 +261,37 @@ function YOUR_PREFIX_register_meta_boxes( $meta_boxes )
 			),
 			// URL
 			array(
-				'name'  => __( 'URL', 'rwmb' ),
+				'name'  => __( 'URL', 'meta-box' ),
 				'id'    => "{$prefix}url",
-				'desc'  => __( 'URL description', 'rwmb' ),
+				'desc'  => __( 'URL description', 'meta-box' ),
 				'type'  => 'url',
 				'std'   => 'http://google.com',
 			),
 			// OEMBED
 			array(
-				'name'  => __( 'oEmbed', 'rwmb' ),
+				'name'  => __( 'oEmbed', 'meta-box' ),
 				'id'    => "{$prefix}oembed",
-				'desc'  => __( 'oEmbed description', 'rwmb' ),
+				'desc'  => __( 'oEmbed description', 'meta-box' ),
 				'type'  => 'oembed',
 			),
 			// SELECT ADVANCED BOX
 			array(
-				'name'     => __( 'Select', 'rwmb' ),
+				'name'     => __( 'Select', 'meta-box' ),
 				'id'       => "{$prefix}select_advanced",
 				'type'     => 'select_advanced',
 				// Array of 'value' => 'Label' pairs for select box
 				'options'  => array(
-					'value1' => __( 'Label1', 'rwmb' ),
-					'value2' => __( 'Label2', 'rwmb' ),
+					'value1' => __( 'Label1', 'meta-box' ),
+					'value2' => __( 'Label2', 'meta-box' ),
 				),
 				// Select multiple values, optional. Default is false.
 				'multiple'    => false,
 				// 'std'         => 'value2', // Default value, optional
-				'placeholder' => __( 'Select an Item', 'rwmb' ),
+				'placeholder' => __( 'Select an Item', 'meta-box' ),
 			),
 			// TAXONOMY
 			array(
-				'name'    => __( 'Taxonomy', 'rwmb' ),
+				'name'    => __( 'Taxonomy', 'meta-box' ),
 				'id'      => "{$prefix}taxonomy",
 				'type'    => 'taxonomy',
 				'options' => array(
@@ -303,7 +305,7 @@ function YOUR_PREFIX_register_meta_boxes( $meta_boxes )
 			),
 			// POST
 			array(
-				'name'    => __( 'Posts (Pages)', 'rwmb' ),
+				'name'    => __( 'Posts (Pages)', 'meta-box' ),
 				'id'      => "{$prefix}pages",
 				'type'    => 'post',
 
@@ -313,18 +315,18 @@ function YOUR_PREFIX_register_meta_boxes( $meta_boxes )
 				'field_type' => 'select_advanced',
 				// Query arguments (optional). No settings means get all published posts
 				'query_args' => array(
-					'post_status' => 'publish',
-					'posts_per_page' => '-1',
+					'post_status'    => 'publish',
+					'posts_per_page' => - 1,
 				)
 			),
 			// WYSIWYG/RICH TEXT EDITOR
 			array(
-				'name' => __( 'WYSIWYG / Rich Text Editor', 'rwmb' ),
+				'name' => __( 'WYSIWYG / Rich Text Editor', 'meta-box' ),
 				'id'   => "{$prefix}wysiwyg",
 				'type' => 'wysiwyg',
 				// Set the 'raw' parameter to TRUE to prevent data being passed through wpautop() on save
 				'raw'  => false,
-				'std'  => __( 'WYSIWYG default value', 'rwmb' ),
+				'std'  => __( 'WYSIWYG default value', 'meta-box' ),
 
 				// Editor settings, see wp_editor() function: look4wp.com/wp_editor
 				'options' => array(
@@ -340,13 +342,13 @@ function YOUR_PREFIX_register_meta_boxes( $meta_boxes )
 			),
 			// FILE UPLOAD
 			array(
-				'name' => __( 'File Upload', 'rwmb' ),
+				'name' => __( 'File Upload', 'meta-box' ),
 				'id'   => "{$prefix}file",
 				'type' => 'file',
 			),
 			// FILE ADVANCED (WP 3.5+)
 			array(
-				'name' => __( 'File Advanced Upload', 'rwmb' ),
+				'name' => __( 'File Advanced Upload', 'meta-box' ),
 				'id'   => "{$prefix}file_advanced",
 				'type' => 'file_advanced',
 				'max_file_uploads' => 4,
@@ -354,26 +356,26 @@ function YOUR_PREFIX_register_meta_boxes( $meta_boxes )
 			),
 			// IMAGE UPLOAD
 			array(
-				'name' => __( 'Image Upload', 'rwmb' ),
+				'name' => __( 'Image Upload', 'meta-box' ),
 				'id'   => "{$prefix}image",
 				'type' => 'image',
 			),
 			// THICKBOX IMAGE UPLOAD (WP 3.3+)
 			array(
-				'name' => __( 'Thickbox Image Upload', 'rwmb' ),
+				'name' => __( 'Thickbox Image Upload', 'meta-box' ),
 				'id'   => "{$prefix}thickbox",
 				'type' => 'thickbox_image',
 			),
 			// PLUPLOAD IMAGE UPLOAD (WP 3.3+)
 			array(
-				'name'             => __( 'Plupload Image Upload', 'rwmb' ),
+				'name'             => __( 'Plupload Image Upload', 'meta-box' ),
 				'id'               => "{$prefix}plupload",
 				'type'             => 'plupload_image',
 				'max_file_uploads' => 4,
 			),
 			// IMAGE ADVANCED (WP 3.5+)
 			array(
-				'name'             => __( 'Image Advanced Upload', 'rwmb' ),
+				'name'             => __( 'Image Advanced Upload', 'meta-box' ),
 				'id'               => "{$prefix}imgadv",
 				'type'             => 'image_advanced',
 				'max_file_uploads' => 4,
