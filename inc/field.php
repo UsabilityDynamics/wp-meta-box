@@ -95,7 +95,7 @@ if ( ! class_exists( 'RWMB_Field ' ) )
 					$input_html = apply_filters( "rwmb_{$id}_html", $input_html, $field, $sub_meta );
 
 					// Remove clone button
-					$input_html .= call_user_func( array( $field_class, 'remove_clone_button' ), $sub_meta, $sub_field );
+					$input_html .= call_user_func( array( $field_class, 'remove_clone_button' ), $sub_field );
 
 					$input_html .= '</div>';
 
@@ -206,7 +206,7 @@ if ( ! class_exists( 'RWMB_Field ' ) )
 		 */
 		static function end_html( $meta, $field )
 		{
-			$button = $field['clone'] ? call_user_func( array( RW_Meta_Box::get_class_name( $field ), 'add_clone_button' ) ) : '';
+			$button = $field['clone'] ? call_user_func( array( RW_Meta_Box::get_class_name( $field ), 'add_clone_button' ), $field ) : '';
 			$desc   = $field['desc'] ? "<p id='{$field['id']}_description' class='description'>{$field['desc']}</p>" : '';
 
 			// Closes the container
@@ -218,21 +218,27 @@ if ( ! class_exists( 'RWMB_Field ' ) )
 		/**
 		 * Add clone button
 		 *
+		 * @param array $field Field parameter
+		 *
 		 * @return string $html
 		 */
-		static function add_clone_button()
+		static function add_clone_button( $field )
 		{
-			return '<a href="#" class="rwmb-button button-primary add-clone">' . __( '+', 'meta-box' ) . '</a>';
+			$text = apply_filters( 'rwmb_add_clone_button_text', __( '+', 'meta-box' ), $field );
+			return "<a href='#' class='rwmb-button button-primary add-clone'>$text</a>";
 		}
 
 		/**
 		 * Remove clone button
 		 *
+		 * @param array $field Field parameter
+		 *
 		 * @return string $html
 		 */
-		static function remove_clone_button()
+		static function remove_clone_button( $field )
 		{
-			return '<a href="#" class="rwmb-button button remove-clone">' . __( '&#8211;', 'meta-box' ) . '</a>';
+			$text = apply_filters( 'rwmb_remove_clone_button_text', __( '&#8211;', 'meta-box' ), $field );
+			return "<a href='#' class='rwmb-button button remove-clone'>$text</a>";
 		}
 
 		/**
@@ -246,6 +252,13 @@ if ( ! class_exists( 'RWMB_Field ' ) )
 		 */
 		static function meta( $post_id, $saved, $field )
 		{
+			/**
+			 * For special fields like 'divider', 'heading' which don't have ID, just return empty string
+			 * to prevent notice error when displayin fields
+			 */
+			if ( empty( $field['id'] ) )
+				return '';
+
 			$meta = get_post_meta( $post_id, $field['id'], ! $field['multiple'] );
 
 			// Use $field['std'] only when the meta box hasn't been saved (i.e. the first time we run)

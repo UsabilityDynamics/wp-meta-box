@@ -22,15 +22,27 @@ Meta Box plugin is a complete tool to create meta box and custom fields in WordP
 * Has built-in hooks which allow you to change the appearance and behavior of meta boxes
 * Easily integrate with themes
 
+### Documentation
+
+- [Getting Started](http://metabox.io/docs/getting-started/)
+- [Register Meta Boxes](http://metabox.io/docs/registering-meta-boxes/)
+- [Define Fields](http://metabox.io/docs/define-fields/)
+- [Get Meta Value](http://metabox.io/docs/get-meta-value/)
+
+See more documentation [here](http://metabox.io/docs/).
+
 ### Premium Extensions
 
+- [Meta Box Group](http://metabox.io/plugins/meta-box-group/): Organize custom fields in groups for better appearance and structure. Groups can be cloned.
+- [Meta Box Builder](http://metabox.io/plugins/meta-box-builder/): Drag and Drop to create Meta Boxes and Custom Fields has never been easier.
+- [Meta Box Template](http://metabox.io/plugins/meta-box-template/): Define custom meta boxes and custom fields easier with templates.
 - [Meta Box Tooltip](http://metabox.io/plugins/meta-box-tooltip/): Display help information for fields using beautiful tooltips.
 - [Meta Box Show Hide (Javascript)](http://metabox.io/plugins/meta-box-show-hide-javascript/): Toggle meta boxes by page template, post format, taxonomy (including category) via Javascript.
 - [Meta Box Tabs](http://metabox.io/plugins/meta-box-tabs/): Create tabs for meta boxes easily. Support 3 WordPress-native tab styles and tab icon.
 - [Meta Box Columns](http://metabox.io/plugins/meta-box-columns/): Display fields more beautiful by putting them into 12-columns grid.
 - [Meta Box Include Exclude](http://metabox.io/plugins/meta-box-include-exclude/): Show/hide meta boxes by ID, page template, taxonomy or custom function.
 
-See all premium extensions [here](http://metabox.io).
+See all premium extensions [here](http://metabox.io/plugins/).
 
 ***
 
@@ -58,6 +70,37 @@ To getting started with the plugin API, please read [this tutorial](http://metab
 ***
 
 ## Changelog
+
+
+#### 4.4.3
+* Fix: Incorrect path to loader image for `plupload_image`
+* Fix: Missing placeholder for `post` field when `field_type` = `select`
+* Improvement: No errors showing if invalid value is returned from `rwmb_meta_boxes` filter
+* Improvement: Add filter for add/remove clone buttons text
+* Improvement: Add French translation
+
+#### 4.4.2
+* Fix: Values of text_list field not showing correctly
+* Fix: Time picker field cannot select hour > 22, time > 58
+* Fix: Notice error when showing fields which don't have ID
+* Fix: Don't return non-existing files or images via rwmb_meta function
+* Fix: CSS alignment for taxonomy tree
+* Fix: Placeholder not working for "select" taxonomy
+* Improvement: Update timepicker to latest version
+* Improvement: Improve output markup for checkbox field
+
+#### 4.4.1
+* Fix: wrong text domain
+* Fix: `select_advanced` field not cloning
+* Fix: cloned emails are not saved
+* Improvement: Use `post_types` instead of `pages`, accept string for single post type as well. Fallback to `pages` for previous versions.
+
+#### 4.4.0
+* New: 'autocomplete' field.
+* Improvement: field id is now optional (heading, divider)
+* Improvement: heading now supports 'description'
+* Improvement: update select2 library to version 3.5.2
+* Improvement: coding standards
 
 #### 4.3.11
 * Bug fix: use field id instead of field_name for wysiwyg field
