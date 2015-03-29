@@ -31,9 +31,12 @@ if ( ! class_exists( 'RWMB_Autocomplete_Field' ) )
 			if ( ! is_array( $meta ) )
 				$meta = array( $meta );
 
-			if( is_string( $field['options'] ) ) {
+			if( is_string( $field['options'] ) ) 
+			{
 				$options = $field['options'];
-			} else {
+			} 
+			else 
+			{
 				$options = array();
 				foreach ( $field['options'] as $value => $label )
 				{
@@ -67,10 +70,30 @@ if ( ! class_exists( 'RWMB_Autocomplete_Field' ) )
 					<input type="hidden" class="rwmb-autocomplete-value" name="%s" value="%s">
 				</div>
 			';
-			foreach ( $field['options'] as $value => $label )
+
+			if( is_array( $field['options'] ) ) 
 			{
-				if ( in_array( $value, $meta ) )
+				foreach ( $field['options'] as $value => $label )
 				{
+					if ( in_array( $value, $meta ) )
+					{
+						$html .= sprintf(
+							$tpl,
+							$label,
+							__( 'Delete', 'meta-box' ),
+							$field['field_name'],
+							$value
+						);
+					}
+				}
+			}
+			else
+			{
+				foreach ( $meta as $value )
+				{
+					if( empty( $value ) )
+						continue;
+					$label = apply_filters( 'rwmb_autocomplete_result_label', $value, $field );
 					$html .= sprintf(
 						$tpl,
 						$label,
@@ -80,6 +103,7 @@ if ( ! class_exists( 'RWMB_Autocomplete_Field' ) )
 					);
 				}
 			}
+
 			$html .= '</div>'; // .rwmb-autocomplete-results
 
 			return $html;

@@ -15,110 +15,57 @@ if ( ! class_exists( 'RWMB_Helper' ) )
 	class RWMB_Helper
 	{
 		/**
-		 * Do actions when class is loaded
+		 * Find field by field ID
+		 * This function finds field in meta boxes registered by 'rwmb_meta_boxes' filter
+		 * Note: if users use old code to add meta boxes, this function might not work properly
 		 *
-		 * @return void
+		 * @param  string $field_id Field ID
+		 *
+		 * @return array|false Field params (array) if success. False otherwise.
 		 */
-		static function on_load()
+		static function find_field( $field_id )
 		{
-			add_shortcode( 'rwmb_meta', array( __CLASS__, 'shortcode' ) );
-		}
+			$found = false;
 
-		/**
-		 * Shortcode to display meta value
-		 *
-		 * @param $atts Array of shortcode attributes, same as meta() function, but has more "meta_key" parameter
-		 *
-		 * @see meta() function below
-		 *
-		 * @return string
-		 */
-		static function shortcode( $atts )
-		{
-			$atts = wp_parse_args( $atts, array(
-				'type'    => 'text',
-				'post_id' => get_the_ID(),
+			// Get all meta boxes registered with 'rwmb_meta_boxes' hook
+			$meta_boxes = apply_filters( 'rwmb_meta_boxes', array() );
+
+			// Find field
+			foreach ( $meta_boxes as $meta_box )
+			{
+				foreach ( $meta_box['fields'] as $field )
+				{
+					if ( $field_id == $field['id'] )
+					{
+						$found = true;
+						break;
+					}
+				}
+			}
+
+			// If field doesn't exist, return false
+			if ( ! $found )
+			{
+				return false;
+			}
+
+			// Normalize field to make sure all params are set properly
+			$field = wp_parse_args( $field, array(
+				'id'          => '',
+				'multiple'    => false,
+				'clone'       => false,
+				'std'         => '',
+				'desc'        => '',
+				'format'      => '',
+				'before'      => '',
+				'after'       => '',
+				'field_name'  => isset( $field['id'] ) ? $field['id'] : '',
+				'required'    => false,
+				'placeholder' => '',
 			) );
-			if ( empty( $atts['meta_key'] ) )
-				return '';
+			$field = call_user_func( array( RW_Meta_Box::get_class_name( $field ), 'normalize_field' ), $field );
 
-			$meta = self::meta( $atts['meta_key'], $atts, $atts['post_id'] );
-
-			// Get uploaded files info
-			if ( in_array( $atts['type'], array( 'file', 'file_advanced' ) ) )
-			{
-				$content = '<ul>';
-				foreach ( $meta as $file )
-				{
-					$content .= sprintf(
-						'<li><a href="%s" title="%s">%s</a></li>',
-						$file['url'],
-						$file['title'],
-						$file['name']
-					);
-				}
-				$content .= '</ul>';
-			}
-
-			// Get uploaded images info
-			elseif ( in_array( $atts['type'], array( 'image', 'plupload_image', 'thickbox_image', 'image_advanced' ) ) )
-			{
-				$content = '<ul>';
-				foreach ( $meta as $image )
-				{
-					// Link thumbnail to full size image?
-					if ( isset( $atts['link'] ) && $atts['link'] )
-					{
-						$content .= sprintf(
-							'<li><a href="%s" title="%s"><img src="%s" alt="%s" title="%s" /></a></li>',
-							$image['full_url'],
-							$image['title'],
-							$image['url'],
-							$image['alt'],
-							$image['title']
-						);
-					}
-					else
-					{
-						$content .= sprintf(
-							'<li><img src="%s" alt="%s" title="%s" /></li>',
-							$image['url'],
-							$image['alt'],
-							$image['title']
-						);
-					}
-				}
-				$content .= '</ul>';
-			}
-
-			// Get post terms
-			elseif ( 'taxonomy' == $atts['type'] )
-			{
-				$content = '<ul>';
-				foreach ( $meta as $term )
-				{
-					$content .= sprintf(
-						'<li><a href="%s" title="%s">%s</a></li>',
-						get_term_link( $term, $atts['taxonomy'] ),
-						$term->name,
-						$term->name
-					);
-				}
-				$content .= '</ul>';
-			}
-
-			// Normal multiple fields: checkbox_list, select with multiple values
-			elseif ( is_array( $meta ) )
-			{
-				$content = '<ul><li>' . implode( '</li><li>', $meta ) . '</li></ul>';
-			}
-
-			else
-			{
-				$content = $meta;
-			}
-
-			return apply_filters( 'rwmb_shortcode', $content );
+			return $field;
 		}
 
 		/**
@@ -396,11 +343,10 @@ if ( ! class_exists( 'RWMB_Helper' ) )
 			return $html;
 		}
 	}
-
-	RWMB_Helper::on_load();
 }
 
-if( !function_exists( 'rwmb_meta' ) ) {
+if ( ! function_exists( 'rwmb_meta' ) )
+{
 	/**
 	 * Get post meta
 	 *
@@ -416,64 +362,103 @@ if( !function_exists( 'rwmb_meta' ) ) {
 	}
 }
 
-
-if( !function_exists( 'rwmb_get_field' ) ) {
+if ( ! function_exists( 'rwmb_get_field' ) )
+{
 	/**
 	 * Get value of custom field.
-	 * This is used to replace old version of rwmb_meta key. rwmb_meta will be used internally only.
+	 * This is used to replace old version of rwmb_meta key.
 	 *
-	 * @uses   rwmb_meta()
-	 * @param  string   $key     Meta key. Required.
-	 * @param  int|null $post_id Post ID. null for current post. Optional.
-	 * @return mixed             false if field doesn't exist. Field value otherwise.
+	 * @param  string   $field_id Field ID. Required.
+	 * @param  array    $args     Additional arguments. Rarely used. See specific fields for details
+	 * @param  int|null $post_id  Post ID. null for current post. Optional.
+	 *
+	 * @return mixed false if field doesn't exist. Field value otherwise.
 	 */
-	function rwmb_get_field( $key, $post_id = null )
+	function rwmb_get_field( $field_id, $args = array(), $post_id = null )
 	{
-		/**
-		 * Search all the registered meta box to find needed field
-		 * The field will have all needed parameters which we can pass to rwmb_meta function without
-		 * having users to manually set them (field type, multiple, ect.). So users only need to remember
-		 * field ID only.
-		 */
-		$found = false;
-		$meta_boxes = apply_filters( 'rwmb_meta_boxes', array() );
-		foreach ( $meta_boxes as $meta_box )
-		{
-			foreach ( $meta_box['fields'] as $field )
-			{
-				if ( $key == $field['id'] )
-				{
-					$found = true;
-					break;
-				}
-			}
-		}
-
-		// If field doesn't exist, return false
-		if ( ! $found )
-		{
-			return false;
-		}
-
-		// Normalize field to make sure all params are set properly
-		$field = wp_parse_args( $field, array(
-			'id'          => '',
-			'multiple'    => false,
-			'clone'       => false,
-			'std'         => '',
-			'desc'        => '',
-			'format'      => '',
-			'before'      => '',
-			'after'       => '',
-			'field_name'  => isset( $field['id'] ) ? $field['id'] : '',
-			'required'    => false,
-			'placeholder' => '',
-		) );
-		$field = call_user_func( array( RW_Meta_Box::get_class_name( $field ), 'normalize_field' ), $field );
+		$field = RWMB_Helper::find_field( $field_id );
 
 		// Get field value
-		return RWMB_Helper::meta( $key, $field, $post_id );
+		$value = $field ? call_user_func( array( RW_Meta_Box::get_class_name( $field ), 'get_value' ), $field, $args, $post_id ) : false;
+
+		/**
+		 * Allow developers to change the returned value of field
+		 *
+		 * @param mixed    $value   Field value
+		 * @param array    $field   Field parameter
+		 * @param array    $args    Additional arguments. Rarely used. See specific fields for details
+		 * @param int|null $post_id Post ID. null for current post. Optional.
+		 */
+		$value = apply_filters( 'rwmb_get_field', $value, $field, $args, $post_id );
+
+		return $value;
 	}
 }
 
+if ( ! function_exists( 'rwmb_the_field' ) )
+{
+	/**
+	 * Display the value of a field
+	 *
+	 * @param  string   $field_id Field ID. Required.
+	 * @param  array    $args     Additional arguments. Rarely used. See specific fields for details
+	 * @param  int|null $post_id  Post ID. null for current post. Optional.
+	 * @param  bool     $echo     Display field meta value? Default `true` which works in almost all cases. We use `false` for  the [rwmb_meta] shortcode
+	 *
+	 * @return string
+	 */
+	function rwmb_the_field( $field_id, $args = array(), $post_id = null, $echo = true )
+	{
+		// Find field
+		$field = RWMB_Helper::find_field( $field_id );
 
+		if ( ! $field )
+			return '';
+
+		$output = call_user_func( array( RW_Meta_Box::get_class_name( $field ), 'the_value' ), $field, $args, $post_id );
+
+		/**
+		 * Allow developers to change the returned value of field
+		 *
+		 * @param mixed    $value   Field HTML output
+		 * @param array    $field   Field parameter
+		 * @param array    $args    Additional arguments. Rarely used. See specific fields for details
+		 * @param int|null $post_id Post ID. null for current post. Optional.
+		 */
+		$output = apply_filters( 'rwmb_the_field', $output, $field, $args, $post_id );
+
+		if ( $echo )
+			echo $output;
+
+		return $output;
+	}
+}
+
+if ( ! function_exists( 'rwmb_meta_shortcode' ) )
+{
+	/**
+	 * Shortcode to display meta value
+	 *
+	 * @param $atts Array of shortcode attributes, same as meta() function, but has more "meta_key" parameter
+	 *
+	 * @see meta() function below
+	 *
+	 * @return string
+	 */
+	function rwmb_meta_shortcode( $atts )
+	{
+		$atts = wp_parse_args( $atts, array(
+			'post_id' => get_the_ID(),
+		) );
+		if ( empty( $atts['meta_key'] ) )
+			return '';
+
+		$field_id = $atts['meta_key'];
+		$post_id  = $atts['post_id'];
+		unset( $atts['meta_key'], $atts['post_id'] );
+
+		return rwmb_the_field( $field_id, $atts, $post_id, false );
+	}
+
+	add_shortcode( 'rwmb_meta', 'rwmb_meta_shortcode' );
+}
