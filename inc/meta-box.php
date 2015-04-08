@@ -56,7 +56,11 @@ if ( ! class_exists( 'RW_Meta_Box' ) )
 			if ( ! is_admin() )
 				return;
 
-			// Assign meta box values to local variables and add it's missed values
+			/**
+			 * Assign meta box values to local variables and add it's missed values
+			 * Since version 4.5+ we don't need normalizing here, but still keep it for backward compatibility
+			 * (register via 'admin_init')
+			 */
 			$this->meta_box   = self::normalize( $meta_box );
 			$this->fields     = &$this->meta_box['fields'];
 			$this->validation = &$this->meta_box['validation'];
@@ -382,7 +386,7 @@ if ( ! class_exists( 'RW_Meta_Box' ) )
 		 */
 		static function normalize_fields( $fields )
 		{
-			foreach ( $fields as &$field )
+			foreach ( $fields as $k => $field )
 			{
 				$field = wp_parse_args( $field, array(
 					'id'          => '',
@@ -398,8 +402,17 @@ if ( ! class_exists( 'RW_Meta_Box' ) )
 					'placeholder' => '',
 				) );
 
+				$class = self::get_class_name( $field );
+
+				// Make sure field has correct 'type', ignore warning error when users forget to set field type or set incorrect one
+				if ( false === $class )
+				{
+					unset( $fields[$k] );
+					continue;
+				}
+
 				// Allow field class add/change default field values
-				$field = call_user_func( array( self::get_class_name( $field ), 'normalize_field' ), $field );
+				$field = call_user_func( array( $class, 'normalize_field' ), $field );
 
 				if ( isset( $field['fields'] ) )
 					$field['fields'] = self::normalize_fields( $field['fields'] );
@@ -408,6 +421,8 @@ if ( ! class_exists( 'RW_Meta_Box' ) )
 				$field = apply_filters( 'rwmb_normalize_field', $field );
 				$field = apply_filters( "rwmb_normalize_{$field['type']}_field", $field );
 				$field = apply_filters( "rwmb_normalize_{$field['id']}_field", $field );
+
+				$fields[$k] = $field;
 			}
 
 			return $fields;
