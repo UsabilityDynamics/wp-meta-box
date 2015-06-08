@@ -18,7 +18,7 @@ Meta Box plugin provides powerful API to implement custom meta boxes and custom 
 * Easily register multiple custom meta boxes for posts, pages or custom post types
 * Supports a lot of [field types](http://metabox.io/docs/define-fields/)
 * Has built-in hooks which allow you to change the appearance and behavior of meta boxes
-* Easily integrate with themes
+* Easily integrate with themes.
 
 ### Documentation
 
