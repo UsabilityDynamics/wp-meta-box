@@ -13,7 +13,7 @@ Meta Box plugin is a complete tool to create meta box and custom fields in WordP
 
 Meta Box plugin provides powerful API to implement custom meta boxes and custom fields in editing pages (add new/edit post) in WordPress. It works with any custom post type and supports lots of field types.
 
-### Features
+### Features 
 
 * Easily register multiple custom meta boxes for posts, pages or custom post types
 * Supports a lot of [field types](http://metabox.io/docs/define-fields/)
