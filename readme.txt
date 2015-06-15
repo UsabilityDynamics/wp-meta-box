@@ -20,7 +20,7 @@ Meta Box plugin provides powerful API to implement custom meta boxes and custom 
 * Has built-in hooks which allow you to change the appearance and behavior of meta boxes
 * Easily integrate with themes.
 
-### Documentation 
+### Documentation
 
 - [Getting Started](http://metabox.io/docs/getting-started/)
 - [Register Meta Boxes](http://metabox.io/docs/registering-meta-boxes/)
