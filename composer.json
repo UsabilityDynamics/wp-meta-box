@@ -30,6 +30,7 @@
       "inc/fields",
       "inc/common.php",
       "inc/field.php",
+      "inc/field-multiple-values.php"
       "inc/helpers.php",
       "inc/meta-box.php"
     ]
