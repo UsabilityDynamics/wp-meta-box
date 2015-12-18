@@ -7,15 +7,13 @@
     "select2",
     "wp-admin",
     "meta-box",
-    "wordpress-plugin"
+    "wordpress-plugin",
+    "custom-field"
   ],
   "description": "Easily create custom meta boxes in WordPress.",
-  "homepage": "http://www.deluxeblogtips.com/meta-box/",
-  "license": "GPLv2",
-  "minimum-stability": "dev",
-  "require": {
-    "composer/installers": "~1.0"
-  },
+  "homepage": "http://metabox.io",
+  "license": "GPL-2.0",
+  "minimum-stability": "stable",
   "authors": [
     {
       "name": "Tran Ngoc Tuan Anh",
@@ -25,14 +23,17 @@
     }
   ],
   "autoload": {
-    "files": ["meta-box-loader.php"],
+    "files": [
+      "meta-box.php"
+    ],
     "classmap": [
+      "inc/",
       "inc/fields",
-      "inc/common.php",
       "inc/field.php",
-      "inc/field-multiple-values.php"
+      "inc/meta-box.php",
+      "inc/validation.php",
       "inc/helpers.php",
-      "inc/meta-box.php"
+      "inc/core.php"
     ]
   }
 }
