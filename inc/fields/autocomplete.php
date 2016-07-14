@@ -1,19 +1,27 @@
 <?php
-// Prevent loading this file directly
-defined( 'ABSPATH' ) || exit;
 
+/**
+ * Autocomplete field class.
+ */
 class RWMB_Autocomplete_Field extends RWMB_Multiple_Values_Field
 {
 	/**
-	 * Enqueue scripts and styles
-	 *
-	 * @return void
+	 * Enqueue scripts and styles.
 	 */
 	static function admin_enqueue_scripts()
 	{
 		wp_enqueue_style( 'rwmb-autocomplete', RWMB_CSS_URL . 'autocomplete.css', array( 'wp-admin' ), RWMB_VER );
 		wp_enqueue_script( 'rwmb-autocomplete', RWMB_JS_URL . 'autocomplete.js', array( 'jquery-ui-autocomplete' ), RWMB_VER, true );
-		wp_localize_script( 'rwmb-autocomplete', 'RWMB_Autocomplete', array( 'delete' => __( 'Delete', 'meta-box' ) ) );
+
+		/**
+		 * Prevent loading localized string twice.
+		 * @link https://github.com/rilwis/meta-box/issues/850
+		 */
+		$wp_scripts = wp_scripts();
+		if ( ! $wp_scripts->get_data( 'rwmb-autocomplete', 'data' ) )
+		{
+			wp_localize_script( 'rwmb-autocomplete', 'RWMB_Autocomplete', array( 'delete' => __( 'Delete', 'meta-box' ) ) );
+		}
 	}
 
 	/**
@@ -21,7 +29,6 @@ class RWMB_Autocomplete_Field extends RWMB_Multiple_Values_Field
 	 *
 	 * @param mixed $meta
 	 * @param array $field
-	 *
 	 * @return string
 	 */
 	static function html( $meta, $field )
@@ -29,14 +36,13 @@ class RWMB_Autocomplete_Field extends RWMB_Multiple_Values_Field
 		if ( ! is_array( $meta ) )
 			$meta = array( $meta );
 
-		if ( is_string( $field['options'] ) )
-		{
-			$options = $field['options'];
-		}
-		else
+		$field   = apply_filters( 'rwmb_autocomplete_field', $field, $meta );
+		$options = $field['options'];
+
+		if ( ! is_string( $field['options'] ) )
 		{
 			$options = array();
-			foreach ( $field['options'] as $value => $label )
+			foreach ( (array) $field['options'] as $value => $label )
 			{
 				$options[] = array(
 					'value' => $value,
@@ -50,11 +56,11 @@ class RWMB_Autocomplete_Field extends RWMB_Multiple_Values_Field
 		// This field doesn't store field values, so it doesn't have "name" attribute.
 		// The value(s) of the field is store in hidden input(s). See below.
 		$html = sprintf(
-			'<input type="text" class="rwmb-autocomplete" id="%s" data-name="%s" data-options="%s" size="%s">',
-			$field['id'],
+			'<input type="text" class="rwmb-autocomplete-search" size="%s">
+			<input type="hidden" name="%s" class="rwmb-autocomplete" data-options="%s" disabled>',
+			$field['size'],
 			$field['field_name'],
-			esc_attr( $options ),
-			$field['size']
+			esc_attr( $options )
 		);
 
 		$html .= '<div class="rwmb-autocomplete-results">';
@@ -111,7 +117,6 @@ class RWMB_Autocomplete_Field extends RWMB_Multiple_Values_Field
 	 * Normalize parameters for field
 	 *
 	 * @param array $field
-	 *
 	 * @return array
 	 */
 	static function normalize( $field )

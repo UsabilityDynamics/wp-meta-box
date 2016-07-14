@@ -1,15 +1,14 @@
 <?php
-// Prevent loading this file directly
-defined( 'ABSPATH' ) || exit;
 
+/**
+ * Checkbox field class.
+ */
 class RWMB_Checkbox_Field extends RWMB_Input_Field
 {
 	/**
-	 * Enqueue scripts and styles
-	 *
-	 * @return void
+	 * Enqueue scripts and styles.
 	 */
-	static function admin_enqueue_scripts()
+	public static function admin_enqueue_scripts()
 	{
 		wp_enqueue_style( 'rwmb-checkbox', RWMB_CSS_URL . 'checkbox.css', array(), RWMB_VER );
 	}
@@ -19,34 +18,39 @@ class RWMB_Checkbox_Field extends RWMB_Input_Field
 	 *
 	 * @param mixed $meta
 	 * @param array $field
-	 *
 	 * @return string
 	 */
-	static function html( $meta, $field )
+	public static function html( $meta, $field )
 	{
-		$attributes          = $field['attributes'];
-		$attributes['value'] = 1;
-		return sprintf(
-			'<input %s value="1" %s>',
+		$attributes = self::get_attributes( $field, 1 );
+		$output     = sprintf(
+			'<input %s %s>',
 			self::render_attributes( $attributes ),
 			checked( ! empty( $meta ), 1, false )
 		);
+		if ( $field['desc'] )
+		{
+			$output = "<label id='{$field['id']}_description' class='description'>$output {$field['desc']}</label>";
+		}
+		return $output;
 	}
 
 	/**
-	 * Normalize parameters for field
+	 * Show end HTML markup for fields
 	 *
+	 * @param mixed $meta
 	 * @param array $field
 	 *
-	 * @return array
+	 * @return string
 	 */
-	static function normalize( $field )
+	public static function end_html( $meta, $field )
 	{
-		$field                       = parent::normalize( $field );
-		$field['attributes']['list'] = false;
-		$field['attributes']['type'] = 'checkbox';
+		$button = $field['clone'] ? self::add_clone_button( $field ) : '';
 
-		return $field;
+		// Closes the container
+		$html = "{$button}</div>";
+
+		return $html;
 	}
 
 	/**
@@ -62,31 +66,19 @@ class RWMB_Checkbox_Field extends RWMB_Input_Field
 	 *
 	 * @return int
 	 */
-	static function value( $new, $old, $post_id, $field )
+	public static function value( $new, $old, $post_id, $field )
 	{
 		return empty( $new ) ? 0 : 1;
 	}
 
 	/**
-	 * Output the field value
-	 * Display 'Yes' or 'No' instead of '1' and '0'
-	 *
-	 * Note: we don't echo the field value directly. We return the output HTML of field, which will be used in
-	 * rwmb_the_field function later.
-	 *
-	 * @use self::get_value()
-	 * @see rwmb_the_field()
-	 *
-	 * @param  array    $field   Field parameters
-	 * @param  array    $args    Additional arguments. Rarely used. See specific fields for details
-	 * @param  int|null $post_id Post ID. null for current post. Optional.
-	 *
-	 * @return string HTML output of the field
+	 * Format a single value for the helper functions.
+	 * @param array  $field Field parameter
+	 * @param string $value The value
+	 * @return string
 	 */
-	static function the_value( $field, $args = array(), $post_id = null )
+	public static function format_single_value( $field, $value )
 	{
-		$value = self::get_value( $field, $args, $post_id );
-
 		return $value ? __( 'Yes', 'meta-box' ) : __( 'No', 'meta-box' );
 	}
 }

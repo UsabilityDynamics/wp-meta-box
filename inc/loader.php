@@ -18,7 +18,20 @@ class RWMB_Loader
 	public function __construct()
 	{
 		$this->constants();
+
+		/**
+		 * Register autoloader for plugin classes.
+		 * In PHP 5.3, SPL extension cannot be disabled and it's safe to use autoload.
+		 * However, hosting providers can disable it in PHP 5.2. In that case, we provide a fallback for autoload.
+		 * @link http://php.net/manual/en/spl.installation.php
+		 * @link https://github.com/rilwis/meta-box/issues/810
+		 */
 		spl_autoload_register( array( $this, 'autoload' ) );
+		if ( ! class_exists( 'RWMB_Core' ) )
+		{
+			$this->autoload_fallback();
+		}
+
 		$this->init();
 	}
 
@@ -28,9 +41,9 @@ class RWMB_Loader
 	public function constants()
 	{
 		// Script version, used to add version for scripts and styles
-		define( 'RWMB_VER', '4.7.3' );
+		define( 'RWMB_VER', '4.8.7' );
 
-		list( $path, $url ) = $this->get_path();
+		list( $path, $url ) = self::get_path();
 
 		// Plugin URLs, for fast enqueuing scripts and styles
 		define( 'RWMB_URL', $url );
@@ -45,20 +58,34 @@ class RWMB_Loader
 
 	/**
 	 * Get plugin base path and URL.
+	 * The method is static and can be used in extensions.
 	 * @link http://www.deluxeblogtips.com/2013/07/get-url-of-php-file-in-wordpress.html
+	 * @param string $base Base folder path
 	 * @return array Path and URL.
 	 */
-	public function get_path()
+	public static function get_path( $base = '' )
 	{
 		// Plugin base path
-		$path = plugin_dir_path( dirname( __FILE__ ) );
-		$path = trailingslashit( wp_normalize_path( $path ) );
+		$path        = $base ? $base : dirname( dirname( __FILE__ ) );
+		$path        = wp_normalize_path( untrailingslashit( $path ) );
+		$content_dir = wp_normalize_path( untrailingslashit( WP_CONTENT_DIR ) );
 
-		// Get plugin base URL
-		$content_url = untrailingslashit( dirname( dirname( get_stylesheet_directory_uri() ) ) );
-		$content_dir = untrailingslashit( dirname( dirname( get_stylesheet_directory() ) ) );
-		$content_dir = wp_normalize_path( $content_dir );
-		$url         = str_replace( $content_dir, $content_url, $path );
+		// Default URL
+		$url = plugins_url( '', $path . '/' . basename( $path ) . '.php' );
+
+		// Included into themes
+		if (
+			0 !== strpos( $path, wp_normalize_path( WP_PLUGIN_DIR ) )
+			&& 0 !== strpos( $path, wp_normalize_path( WPMU_PLUGIN_DIR ) )
+			&& 0 === strpos( $path, $content_dir )
+		)
+		{
+			$content_url = untrailingslashit( dirname( dirname( get_stylesheet_directory_uri() ) ) );
+			$url         = str_replace( $content_dir, $content_url, $path );
+		}
+
+		$path = trailingslashit( $path );
+		$url  = trailingslashit( $url );
 
 		return array( $path, $url );
 	}
@@ -76,11 +103,8 @@ class RWMB_Loader
 		}
 
 		// Get file name
-		if ( 'RW_Meta_Box' == $class )
-		{
-			$file = 'meta-box';
-		}
-		else
+		$file = 'meta-box';
+		if ( 'RW_Meta_Box' != $class )
 		{
 			// Remove prefix 'RWMB_'
 			$file = substr( $class, 5 );
@@ -91,13 +115,99 @@ class RWMB_Loader
 
 		$file = strtolower( str_replace( '_', '-', $file ) ) . '.php';
 
-		$dirs = array( RWMB_INC_DIR, RWMB_FIELDS_DIR );
+		$dirs = array( RWMB_INC_DIR, RWMB_FIELDS_DIR, trailingslashit( RWMB_INC_DIR . 'walkers' ) );
 		foreach ( $dirs as $dir )
 		{
-			if ( file_exists( trailingslashit( $dir ) . $file ) )
+			if ( file_exists( $dir . $file ) )
 			{
-				require trailingslashit( $dir ) . $file;
+				require $dir . $file;
+				return;
 			}
+		}
+	}
+
+	/**
+	 * Fallback for autoload in PHP 5.2.
+	 */
+	public function autoload_fallback()
+	{
+		$files = array(
+			// Core
+			'core',
+			'helper',
+			'meta-box',
+			'validation',
+
+			// Walkers
+			'walkers/walker',
+			'walkers/select-walker',
+			'walkers/select-tree-walker',
+			'walkers/input-list-walker',
+
+			// Fields
+			'field',
+
+			'fields/multiple-values',
+			'fields/autocomplete',
+			'fields/text-list',
+
+			'fields/choice',
+
+			'fields/select',
+			'fields/select-advanced',
+			'fields/select-tree',
+
+			'fields/input-list',
+			'fields/radio',
+			'fields/checkbox-list',
+
+			'fields/object-choice',
+			'fields/post',
+			'fields/taxonomy',
+			'fields/taxonomy-advanced',
+			'fields/user',
+
+			'fields/input',
+
+			'fields/checkbox',
+			'fields/number',
+			'fields/range',
+
+			'fields/text',
+			'fields/color',
+			'fields/datetime',
+			'fields/date',
+			'fields/time',
+			'fields/email',
+			'fields/fieldset-text',
+			'fields/key-value',
+			'fields/url',
+			'fields/oembed',
+			'fields/password',
+
+			'fields/media',
+			'fields/file-upload',
+			'fields/image-advanced',
+			'fields/image-upload',
+
+			'fields/file-input',
+			'fields/file',
+			'fields/image',
+			'fields/image-select',
+			'fields/thickbox-image',
+
+			'fields/button',
+			'fields/custom-html',
+			'fields/divider',
+			'fields/heading',
+			'fields/map',
+			'fields/slider',
+			'fields/textarea',
+			'fields/wysiwyg',
+		);
+		foreach ( $files as $file )
+		{
+			require RWMB_INC_DIR . "$file.php";
 		}
 	}
 
@@ -109,10 +219,13 @@ class RWMB_Loader
 		// Plugin core
 		new RWMB_Core;
 
-		// Validation module
-		new RWMB_Validation;
+		if ( is_admin() )
+		{
+			// Validation module
+			new RWMB_Validation;
+		}
 
-		// Helper class and functions to retrieve meta value
-		require RWMB_INC_DIR . 'helpers.php';
+		// Public functions
+		require RWMB_INC_DIR . 'functions.php';
 	}
 }

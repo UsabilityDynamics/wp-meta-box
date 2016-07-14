@@ -1,13 +1,12 @@
 <?php
-// Prevent loading this file directly
-defined( 'ABSPATH' ) || exit;
 
+/**
+ * Color field class.
+ */
 class RWMB_Color_Field extends RWMB_Text_Field
 {
 	/**
 	 * Enqueue scripts and styles
-	 *
-	 * @return void
 	 */
 	static function admin_enqueue_scripts()
 	{
@@ -16,25 +15,9 @@ class RWMB_Color_Field extends RWMB_Text_Field
 	}
 
 	/**
-	 * Don't save '#' when no color is chosen
-	 *
-	 * @param mixed $new
-	 * @param mixed $old
-	 * @param int   $post_id
-	 * @param array $field
-	 *
-	 * @return int
-	 */
-	static function value( $new, $old, $post_id, $field )
-	{
-		return '#' === $new ? '' : $new;
-	}
-
-	/**
-	 * Normalize parameters for field
+	 * Normalize parameters for field.
 	 *
 	 * @param array $field
-	 *
 	 * @return array
 	 */
 	static function normalize( $field )
@@ -54,10 +37,35 @@ class RWMB_Color_Field extends RWMB_Text_Field
 
 		$field = parent::normalize( $field );
 
-		$field['attributes'] = wp_parse_args( $field['attributes'], array(
+		return $field;
+	}
+
+	/**
+	 * Get the attributes for a field
+	 *
+	 * @param array $field
+	 * @param mixed $value
+	 * @return array
+	 */
+	static function get_attributes( $field, $value = null )
+	{
+		$attributes = parent::get_attributes( $field, $value );
+		$attributes = wp_parse_args( $attributes, array(
 			'data-options' => wp_json_encode( $field['js_options'] ),
 		) );
+		$attributes['type'] = 'text';
 
-		return $field;
+		return $attributes;
+	}
+
+	/**
+	 * Format a single value for the helper functions.
+	 * @param array  $field Field parameter
+	 * @param string $value The value
+	 * @return string
+	 */
+	static function format_single_value( $field, $value )
+	{
+		return sprintf( "<span style='display:inline-block;width:20px;height:20px;border-radius:50%%;background:%s;'></span>", $value );
 	}
 }

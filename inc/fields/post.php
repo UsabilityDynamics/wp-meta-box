@@ -1,56 +1,28 @@
 <?php
-// Prevent loading this file directly
-defined( 'ABSPATH' ) || exit;
-
-class RWMB_Post_Field extends RWMB_Select_Advanced_Field
+/**
+ * Post field class.
+ */
+class RWMB_Post_Field extends RWMB_Object_Choice_Field
 {
-	/**
-	 * Enqueue scripts and styles
-	 *
-	 * @return void
-	 */
-	static function admin_enqueue_scripts()
-	{
-		RWMB_Select_Field::admin_enqueue_scripts();
-		RWMB_Select_Advanced_Field::admin_enqueue_scripts();
-	}
-
-	/**
-	 * Get field HTML
-	 *
-	 * @param mixed $meta
-	 * @param array $field
-	 *
-	 * @return string
-	 */
-	static function html( $meta, $field )
-	{
-		$field['options'] = self::get_options( $field );
-		switch ( $field['field_type'] )
-		{
-			case 'select':
-				return RWMB_Select_Field::html( $meta, $field );
-			case 'select_advanced':
-			default:
-				return RWMB_Select_Advanced_Field::html( $meta, $field );
-		}
-	}
-
 	/**
 	 * Normalize parameters for field
 	 *
 	 * @param array $field
-	 *
 	 * @return array
 	 */
-	static function normalize( $field )
+	public static function normalize( $field )
 	{
+		/**
+		 * Set default field args
+		 */
+		$field = parent::normalize( $field );
 		$field = wp_parse_args( $field, array(
-			'post_type'  => 'post',
-			'field_type' => 'select_advanced',
-			'parent'     => false,
-			'query_args' => array(),
+			'post_type' => 'post',
+			'parent'    => false,
 		) );
+
+		if ( ! isset( $field['query_args']['post_type'] ) )
+			$field['query_args']['post_type'] = $field['post_type'];
 
 		/**
 		 * Set default placeholder
@@ -59,36 +31,46 @@ class RWMB_Post_Field extends RWMB_Select_Advanced_Field
 		 */
 		if ( empty( $field['placeholder'] ) )
 		{
-			$label = __( 'Select a post', 'meta-box' );
-			if ( is_string( $field['post_type'] ) && post_type_exists( $field['post_type'] ) )
+			$field['placeholder'] = __( 'Select a post', 'meta-box' );
+			if ( is_string( $field['query_args']['post_type'] ) && post_type_exists( $field['query_args']['post_type'] ) )
 			{
-				$post_type_object = get_post_type_object( $field['post_type'] );
-				$label            = sprintf( __( 'Select a %s', 'meta-box' ), $post_type_object->labels->singular_name );
+				$post_type_object     = get_post_type_object( $field['query_args']['post_type'] );
+				$field['placeholder'] = sprintf( __( 'Select a %s', 'meta-box' ), $post_type_object->labels->singular_name );
 			}
-			$field['placeholder'] = $label;
 		}
 
+		/**
+		 * Set parent option, which will change field name to `parent_id` to save as post parent
+		 */
 		if ( $field['parent'] )
 		{
 			$field['multiple']   = false;
 			$field['field_name'] = 'parent_id';
 		}
 
+		/**
+		 * Set default query args
+		 */
 		$field['query_args'] = wp_parse_args( $field['query_args'], array(
-			'post_type'      => $field['post_type'],
 			'post_status'    => 'publish',
 			'posts_per_page' => - 1,
 		) );
 
-		switch ( $field['field_type'] )
-		{
-			case 'select':
-				return RWMB_Select_Field::normalize( $field );
-				break;
-			case 'select_advanced':
-			default:
-				return RWMB_Select_Advanced_Field::normalize( $field );
-		}
+		return $field;
+	}
+
+	/**
+	 * Get field names of object to be used by walker
+	 *
+	 * @return array
+	 */
+	public static function get_db_fields()
+	{
+		return array(
+			'parent' => 'post_parent',
+			'id'     => 'ID',
+			'label'  => 'post_title',
+		);
 	}
 
 	/**
@@ -104,12 +86,11 @@ class RWMB_Post_Field extends RWMB_Select_Advanced_Field
 	 *
 	 * @return array
 	 */
-	static function meta( $post_id, $saved, $field )
+	public static function meta( $post_id, $saved, $field )
 	{
 		if ( isset( $field['parent'] ) && $field['parent'] )
 		{
 			$post = get_post( $post_id );
-
 			return $post->post_parent;
 		}
 
@@ -117,42 +98,28 @@ class RWMB_Post_Field extends RWMB_Select_Advanced_Field
 	}
 
 	/**
-	 * Get posts
+	 * Get options for walker
 	 *
 	 * @param array $field
-	 *
 	 * @return array
 	 */
-	static function get_options( $field )
+	public static function get_options( $field )
 	{
-		$options = array();
-		$query   = new WP_Query( $field['query_args'] );
-		if ( $query->have_posts() )
-		{
-			while ( $query->have_posts() )
-			{
-				$post               = $query->next_post();
-				$title 				= apply_filters( 'rwmb_post_field_title', $post->post_title, $post );
-				$title 				= apply_filters( "rwmb_{$field['id']}_field_title", $title, $post );
-				$options[$post->ID] = $title;
-			}
-		}
-
-		return $options;
+		$query = new WP_Query( $field['query_args'] );
+		return $query->have_posts() ? $query->posts : array();
 	}
 
 	/**
-	 * Get post link to display in the frontend
+	 * Get option label
 	 *
-	 * @param int   $value Option value, e.g. post ID
-	 * @param int   $index Array index
-	 * @param array $field Field parameter
+	 * @param string $value Option value
+	 * @param array  $field Field parameter
 	 *
 	 * @return string
 	 */
-	static function get_option_label( &$value, $index, $field )
+	public static function get_option_label( $field, $value )
 	{
-		$value = sprintf(
+		return sprintf(
 			'<a href="%s" title="%s">%s</a>',
 			esc_url( get_permalink( $value ) ),
 			the_title_attribute( array(

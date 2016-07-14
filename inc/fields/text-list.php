@@ -1,7 +1,8 @@
 <?php
-// Prevent loading this file directly
-defined( 'ABSPATH' ) || exit;
 
+/**
+ * Text list field class.
+ */
 class RWMB_Text_List_Field extends RWMB_Multiple_Values_Field
 {
 	/**
@@ -17,75 +18,66 @@ class RWMB_Text_List_Field extends RWMB_Multiple_Values_Field
 		$html  = array();
 		$input = '<label><input type="text" class="rwmb-text-list" name="%s" value="%s" placeholder="%s"> %s</label>';
 
-		$i = 0;
+		$count = 0;
 		foreach ( $field['options'] as $placeholder => $label )
 		{
 			$html[] = sprintf(
 				$input,
 				$field['field_name'],
-				isset( $meta[$i] ) ? esc_attr( $meta[$i] ) : '',
+				isset( $meta[$count] ) ? esc_attr( $meta[$count] ) : '',
 				$placeholder,
 				$label
 			);
-			$i ++;
+			$count ++;
 		}
 
 		return implode( ' ', $html );
 	}
 
 	/**
-	 * Output the field value
-	 * Display option name instead of option value
-	 *
-	 * @param  array    $field   Field parameters
-	 * @param  array    $args    Additional arguments. Not used for these fields.
-	 * @param  int|null $post_id Post ID. null for current post. Optional.
-	 *
-	 * @return mixed Field value
+	 * Format value for the helper functions.
+	 * @param array        $field Field parameter
+	 * @param string|array $value The field meta value
+	 * @return string
 	 */
-	static function the_value( $field, $args = array(), $post_id = null )
+	public static function format_value( $field, $value )
 	{
-		$value = self::get_value( $field, $args, $post_id );
-		if ( ! $value )
-			return '';
-
-		$output = '<ul>';
-		if ( $field['clone'] )
+		$output = '<table><thead><tr>';
+		foreach ( $field['options'] as $label )
 		{
-			foreach ( $value as $subvalue )
-			{
-				$output .= '<li>';
-				$output .= '<ul>';
+			$output .= "<th>$label</th>";
+		}
+		$output .= '<tr>';
 
-				$i = 0;
-				foreach ( $field['options'] as $placeholder => $label )
-				{
-					$output .= sprintf(
-						'<li><label>%s</label>: %s</li>',
-						$label,
-						isset( $subvalue[$i] ) ? $subvalue[$i] : ''
-					);
-					$i ++;
-				}
-				$output .= '</ul>';
-				$output .= '</li>';
-			}
+		if ( ! $field['clone'] )
+		{
+			$output .= self::format_single_value( $field, $value );
 		}
 		else
 		{
-			$i = 0;
-			foreach ( $field['options'] as $placeholder => $label )
+			foreach ( $value as $subvalue )
 			{
-				$output .= sprintf(
-					'<li><label>%s</label>: %s</li>',
-					$label,
-					isset( $value[$i] ) ? $value[$i] : ''
-				);
-				$i ++;
+				$output .= self::format_single_value( $field, $subvalue );
 			}
 		}
-		$output .= '</ul>';
+		$output .= '</tbody></table>';
+		return $output;
+	}
 
+	/**
+	 * Format a single value for the helper functions.
+	 * @param array $field Field parameter
+	 * @param array $value The value
+	 * @return string
+	 */
+	public static function format_single_value( $field, $value )
+	{
+		$output = '<tr>';
+		foreach ( $value as $subvalue )
+		{
+			$output .= "<td>$subvalue</td>";
+		}
+		$output .= '</tr>';
 		return $output;
 	}
 }

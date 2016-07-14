@@ -1,30 +1,49 @@
 <?php
-// Prevent loading this file directly
-defined( 'ABSPATH' ) || exit;
-
-class RWMB_Media_Field extends RWMB_Field
+/**
+ * Media field class which users WordPress media popup to upload and select files.
+ */
+class RWMB_Media_Field extends RWMB_File_Field
 {
 	/**
 	 * Enqueue scripts and styles
-	 *
-	 * @return void
 	 */
-	static function admin_enqueue_scripts()
+	public static function admin_enqueue_scripts()
 	{
 		wp_enqueue_media();
 		wp_enqueue_style( 'rwmb-media', RWMB_CSS_URL . 'media.css', array(), RWMB_VER );
-		wp_enqueue_script( 'rwmb-media', RWMB_JS_URL . 'media.js', array( 'jquery-ui-sortable', 'underscore', 'backbone' ), RWMB_VER, true );
+		wp_enqueue_script( 'rwmb-media', RWMB_JS_URL . 'media.js', array( 'jquery-ui-sortable', 'underscore', 'backbone', 'media-grid' ), RWMB_VER, true );
+
+		/**
+		 * Prevent loading localized string twice.
+		 * @link https://github.com/rilwis/meta-box/issues/850
+		 */
+		$wp_scripts = wp_scripts();
+		if ( ! $wp_scripts->get_data( 'rwmb-media', 'data' ) )
+		{
+			wp_localize_script( 'rwmb-media', 'i18nRwmbMedia', array(
+				'add'                => apply_filters( 'rwmb_media_add_string', _x( '+ Add Media', 'media', 'meta-box' ) ),
+				'single'             => apply_filters( 'rwmb_media_single_files_string', _x( ' file', 'media', 'meta-box' ) ),
+				'multiple'           => apply_filters( 'rwmb_media_multiple_files_string', _x( ' files', 'media', 'meta-box' ) ),
+				'remove'             => apply_filters( 'rwmb_media_remove_string', _x( 'Remove', 'media', 'meta-box' ) ),
+				'edit'               => apply_filters( 'rwmb_media_edit_string', _x( 'Edit', 'media', 'meta-box' ) ),
+				'view'               => apply_filters( 'rwmb_media_view_string', _x( 'View', 'media', 'meta-box' ) ),
+				'noTitle'            => _x( 'No Title', 'media', 'meta-box' ),
+				'loadingUrl'         => RWMB_URL . 'img/loader.gif',
+				'extensions'         => self::get_mime_extensions(),
+				'select'             => _x( 'Select Files', 'media', 'meta-box' ),
+				'uploadInstructions' => _x( 'Drop files here to upload', 'media', 'meta-box' ),
+			) );
+		}
 	}
 
 	/**
 	 * Add actions
-	 *
-	 * @return void
 	 */
-	static function add_actions()
+	public static function add_actions()
 	{
-		// Print attachment templates
-		add_action( 'print_media_templates', array( __CLASS__, 'print_templates' ) );
+		$args = func_get_args();
+		$field = reset( $args );
+		add_action( 'print_media_templates', array( self::get_class_name( $field ), 'print_templates' ) );
 	}
 
 	/**
@@ -35,18 +54,20 @@ class RWMB_Media_Field extends RWMB_Field
 	 *
 	 * @return string
 	 */
-	static function html( $meta, $field )
+	public static function html( $meta, $field )
 	{
-		$meta = (array) $meta;
-		$meta = implode( ',', $meta );
+		$meta       = (array) $meta;
+		$meta       = implode( ',', $meta );
+		$attributes = $load_test_attr = self::get_attributes( $field, $meta );
+
 		$html = sprintf(
-			'<input type="hidden" name="%s" value="%s" class="rwmb-media">
-			<div class="rwmb-media-view"  data-mime-type="%s" data-max-files="%s" data-force-delete="%s"></div>',
-			$field['field_name'],
-			esc_attr( $meta ),
+			'<input %s>
+			<div class="rwmb-media-view" data-mime-type="%s" data-max-files="%s" data-force-delete="%s" data-show-status="%s"></div>',
+			self::render_attributes( $attributes ),
 			$field['mime_type'],
 			$field['max_file_uploads'],
-			$field['force_delete'] ? 'true' : 'false'
+			$field['force_delete'] ? 'true' : 'false',
+			$field['max_status']
 		);
 
 		return $html;
@@ -59,7 +80,7 @@ class RWMB_Media_Field extends RWMB_Field
 	 *
 	 * @return array
 	 */
-	static function normalize( $field )
+	public static function normalize( $field )
 	{
 		$field = parent::normalize( $field );
 		$field = wp_parse_args( $field, array(
@@ -67,53 +88,55 @@ class RWMB_Media_Field extends RWMB_Field
 			'mime_type'        => '',
 			'max_file_uploads' => 0,
 			'force_delete'     => false,
+			'max_status'       => true,
 		) );
 
-		$field['multiple'] = false;
+		$field['multiple'] = true;
 
 		return $field;
 	}
 
 	/**
-	 * Get meta value
+	 * Get the attributes for a field
 	 *
-	 * @param int   $post_id
-	 * @param bool  $saved
 	 * @param array $field
+	 * @param mixed $value
 	 *
-	 * @return mixed
+	 * @return array
 	 */
-	static function meta( $post_id, $saved, $field )
+	public static function get_attributes( $field, $value = null )
 	{
-		$field['multiple'] = true;
-		return parent::meta( $post_id, $saved, $field );
+		$attributes         = parent::get_attributes( $field, $value );
+		$attributes['type'] = 'hidden';
+		$attributes['name'] .= ! $field['clone'] && $field['multiple'] ? '[]' : '';
+		$attributes['disabled'] = true;
+		$attributes['id']       = false;
+		$attributes['value']    = $value;
+
+		return $attributes;
 	}
 
 	/**
-	 * Get field value
-	 * It's the combination of new (uploaded) images and saved images
-	 *
-	 * @param array $new
-	 * @param array $old
-	 * @param int   $post_id
-	 * @param array $field
-	 *
-	 * @return array|mixed
+	 * Get supported mime extensions.
+	 * @return array
 	 */
-	static function value( $new, $old, $post_id, $field )
+	protected static function get_mime_extensions()
 	{
-		if ( $field['clone'] )
+		$mime_types = wp_get_mime_types();
+		$extensions = array();
+		foreach ( $mime_types as $ext => $mime )
 		{
-			foreach ( $new as &$value )
-			{
-				$value = wp_parse_id_list( $value );
-			}
+			$ext               = explode( '|', $ext );
+			$extensions[$mime] = $ext;
+
+			$mime_parts = explode( '/', $mime );
+			if ( empty( $extensions[$mime_parts[0]] ) )
+				$extensions[$mime_parts[0]] = array();
+			$extensions[$mime_parts[0]] = $extensions[$mime_parts[0] . '/*'] = array_merge( $extensions[$mime_parts[0]], $ext );
+
 		}
-		else
-		{
-			$new = wp_parse_id_list( $new );
-		}
-		return $new;
+
+		return $extensions;
 	}
 
 	/**
@@ -124,130 +147,44 @@ class RWMB_Media_Field extends RWMB_Field
 	 * @param $post_id
 	 * @param $field
 	 */
-	static function save( $new, $old, $post_id, $field )
+	public static function save( $new, $old, $post_id, $field )
 	{
-		$name = $field['id'];
+		delete_post_meta( $post_id, $field['id'] );
+		parent::save( $new, array(), $post_id, $field );
+	}
 
-		delete_post_meta( $post_id, $name );
-
-		if ( '' === $new || array() === $new )
-		{
-			return;
-		}
-
-		// If field is cloneable, value is saved as a single entry in the database
+	/**
+	 * Get meta values to save
+	 *
+	 * @param mixed $new
+	 * @param mixed $old
+	 * @param int   $post_id
+	 * @param array $field
+	 *
+	 * @return array|mixed
+	 */
+	public static function value( $new, $old, $post_id, $field )
+	{
 		if ( $field['clone'] )
 		{
-			$new = (array) $new;
-			$new = array_filter( $new );
-			update_post_meta( $post_id, $name, $new );
-			return;
-		}
-		else
-		{
-			foreach ( $new as $new_value )
+			foreach ( (array) $new as $n )
 			{
-				add_post_meta( $post_id, $name, $new_value, false );
+				if ( - 1 === intval( $n ) )
+					return $old;
 			}
-			return;
 		}
+
+		if ( - 1 === intval( $new ) )
+			return $old;
+
+		return $new;
 	}
 
 	/**
 	 * Template for media item
-	 * @return void
 	 */
-	static function print_templates()
+	public static function print_templates()
 	{
-		$i18n_add            = apply_filters( 'rwmb_media_add_string', _x( '+ Add Media', 'media', 'meta-box' ) );
-		$i18n_remove         = apply_filters( 'rwmb_media_remove_string', _x( 'Remove', 'media', 'meta-box' ) );
-		$i18n_edit           = apply_filters( 'rwmb_media_edit_string', _x( 'Edit', 'media', 'meta-box' ) );
-		$i18n_view           = apply_filters( 'rwmb_media_view_string', _x( 'View', 'media', 'meta-box' ) );
-		$i18n_single_files   = apply_filters( 'rwmb_media_single_files_string', _x( ' file', 'media', 'meta-box' ) );
-		$i18n_multiple_files = apply_filters( 'rwmb_media_multiple_files_string', _x( ' files', 'media', 'meta-box' ) );
-		$i18n_title          = _x( 'No Title', 'media', 'meta-box' );
-		?>
-		<script id="tmpl-rwmb-media-item" type="text/html">
-			<div class="rwmb-media-preview">
-				<div class="rwmb-media-content">
-					<div class="centered">
-						<# if ( 'image' === data.type && data.sizes ) { #>
-							<# if ( data.sizes.thumbnail ) { #>
-								<img src="{{{ data.sizes.thumbnail.url }}}">
-							<# } else { #>
-								<img src="{{{ data.sizes.full.url }}}">
-							<# } #>
-						<# } else { #>
-							<# if ( data.image && data.image.src && data.image.src !== data.icon ) { #>
-								<img src="{{ data.image.src }}" />
-							<# } else { #>
-								<img src="{{ data.icon }}" />
-							<# } #>
-						<# } #>
-					</div>
-				</div>
-			</div>
-			<div class="rwmb-media-info">
-				<h4>
-					<a href="{{{ data.url }}}" target="_blank" title="<?php echo esc_attr( $i18n_view ); ?>">
-						<# if( data.title ) { #> {{{ data.title }}}
-							<# } else { #> <?php echo esc_attr( $i18n_title ); ?>
-						<# } #>
-					</a>
-				</h4>
-				<p>{{{ data.mime }}}</p>
-				<p>
-					<a class="rwmb-edit-media" title="<?php echo esc_attr( $i18n_edit ); ?>" href="{{{ data.editLink }}}" target="_blank">
-						<span class="dashicons dashicons-edit"></span><?php echo esc_attr( $i18n_edit ); ?>
-					</a>
-					<a href="#" class="rwmb-remove-media" title="<?php echo esc_attr( $i18n_remove ); ?>">
-						<span class="dashicons dashicons-no-alt"></span><?php echo esc_attr( $i18n_remove ); ?>
-					</a>
-				</p>
-			</div>
-		</script>
-
-		<script id="tmpl-rwmb-image-item" type="text/html">
-			<div class="rwmb-media-preview">
-				<div class="rwmb-media-content">
-					<div class="centered">
-						<# if ( 'image' === data.type && data.sizes ) { #>
-							<# if ( data.sizes.thumbnail ) { #>
-								<img src="{{{ data.sizes.thumbnail.url }}}">
-							<# } else { #>
-								<img src="{{{ data.sizes.full.url }}}">
-							<# } #>
-						<# } else { #>
-							<# if ( data.image && data.image.src && data.image.src !== data.icon ) { #>
-								<img src="{{ data.image.src }}" />
-							<# } else { #>
-								<img src="{{ data.icon }}" />
-							<# } #>
-						<# } #>
-					</div>
-				</div>
-			</div>
-			<div class="rwmb-overlay"></div>
-			<div class="rwmb-media-bar">
-				<a class="rwmb-edit-media" title="<?php echo esc_attr( $i18n_edit ); ?>" href="{{{ data.editLink }}}" target="_blank">
-					<span class="dashicons dashicons-edit"></span>
-				</a>
-				<a href="#" class="rwmb-remove-media" title="<?php echo esc_attr( $i18n_remove ); ?>">
-					<span class="dashicons dashicons-no-alt"></span>
-				</a>
-			</div>
-		</script>
-
-		<script id="tmpl-rwmb-add-media" type="text/html">
-			<?php echo $i18n_add; ?>
-		</script>
-
-		<script id="tmpl-rwmb-media-status" type="text/html">
-			<# if ( data.maxFiles > 0 ) { #>
-				{{{ data.items }}}/{{{ data.maxFiles }}}
-				<# if ( data.items > 1 || data.items < 1 ) { #>  <?php echo $i18n_multiple_files; ?> <# } else {#> <?php echo $i18n_single_files; ?> <# } #>
-			<# } #>
-		</script>
-		<?php
+		require_once RWMB_INC_DIR . 'templates/media.php';
 	}
 }

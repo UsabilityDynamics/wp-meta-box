@@ -1,25 +1,9 @@
 <?php
-// Prevent loading this file directly
-defined( 'ABSPATH' ) || exit;
-
+/**
+ * HTML5 URL field class.
+ */
 class RWMB_URL_Field extends RWMB_Text_Field
 {
-	/**
-	 * Normalize parameters for field
-	 *
-	 * @param array $field
-	 *
-	 * @return array
-	 */
-	static function normalize( $field )
-	{
-		$field = parent::normalize( $field );
-
-		$field['attributes']['type'] = 'url';
-
-		return $field;
-	}
-
 	/**
 	 * Sanitize url
 	 *

@@ -1,7 +1,7 @@
 <?php
-// Prevent loading this file directly
-defined( 'ABSPATH' ) || exit;
-
+/**
+ * Textarea field class.
+ */
 class RWMB_Textarea_Field extends RWMB_Field
 {
 	/**
@@ -14,7 +14,7 @@ class RWMB_Textarea_Field extends RWMB_Field
 	 */
 	static function html( $meta, $field )
 	{
-		$attributes = $field['attributes'];
+		$attributes = self::get_attributes( $field, $meta );
 		return sprintf(
 			'<textarea %s>%s</textarea>',
 			self::render_attributes( $attributes ),
@@ -26,7 +26,6 @@ class RWMB_Textarea_Field extends RWMB_Field
 	 * Escape meta for field output
 	 *
 	 * @param mixed $meta
-	 *
 	 * @return mixed
 	 */
 	static function esc_meta( $meta )
@@ -38,30 +37,43 @@ class RWMB_Textarea_Field extends RWMB_Field
 	 * Normalize parameters for field
 	 *
 	 * @param array $field
-	 *
 	 * @return array
 	 */
 	static function normalize( $field )
 	{
 		$field = parent::normalize( $field );
 		$field = wp_parse_args( $field, array(
-			'cols' 			=> 60,
-			'rows' 			=> 3,
-			'maxlength' 	=> false,
-			'wrap'			=> false,
-			'readonly'		=> false,
+			'cols'      => 60,
+			'rows'      => 3,
+			'maxlength' => false,
+			'wrap'      => false,
+			'readonly'  => false,
 		) );
-
-		$field['attributes'] = wp_parse_args( $field['attributes'], array(
-			'cols' 			=> $field['cols'],
-			'rows' 			=> $field['rows'],
-			'maxlength' 	=> $field['maxlength'],
-			'wrap'			=> $field['wrap'],
-			'readonly'		=> $field['readonly'],
-			'placeholder'	=> $field['placeholder'],
-		) );
-		$field['attributes']['class'] .= ' large-text';
 
 		return $field;
+	}
+
+	/**
+	 * Get the attributes for a field
+	 *
+	 * @param array $field
+	 * @param mixed $value
+	 *
+	 * @return array
+	 */
+	static function get_attributes( $field, $value = null )
+	{
+		$attributes = parent::get_attributes( $field, $value );
+		$attributes = wp_parse_args( $attributes, array(
+			'cols'        => $field['cols'],
+			'rows'        => $field['rows'],
+			'maxlength'   => $field['maxlength'],
+			'wrap'        => $field['wrap'],
+			'readonly'    => $field['readonly'],
+			'placeholder' => $field['placeholder'],
+		) );
+		$attributes['class'] .= ' large-text';
+
+		return $attributes;
 	}
 }

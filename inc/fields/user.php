@@ -1,31 +1,9 @@
 <?php
-// Prevent loading this file directly
-defined( 'ABSPATH' ) || exit;
-
-class RWMB_User_Field extends RWMB_Select_Advanced_Field
+/**
+ * User field class.
+ */
+class RWMB_User_Field extends RWMB_Object_Choice_Field
 {
-	/**
-	 * Get field HTML
-	 *
-	 * @param mixed $meta
-	 * @param array $field
-	 *
-	 * @return string
-	 */
-	static function html( $meta, $field )
-	{
-		$field['options'] = self::get_options( $field );
-		switch ( $field['field_type'] )
-		{
-			case 'select':
-				return RWMB_Select_Field::html( $meta, $field );
-				break;
-			case 'select_advanced':
-			default:
-				return RWMB_Select_Advanced_Field::html( $meta, $field );
-		}
-	}
-
 	/**
 	 * Normalize parameters for field
 	 *
@@ -33,16 +11,31 @@ class RWMB_User_Field extends RWMB_Select_Advanced_Field
 	 *
 	 * @return array
 	 */
-	static function normalize( $field )
+	public static function normalize( $field )
 	{
-		$field = wp_parse_args( $field, array(
-			'field_type' => 'select_advanced',
-			'parent'     => false,
-			'query_args' => array(),
-		) );
+		/**
+		 * Set default field args
+		 */
+		$field = parent::normalize( $field );
 
-		$field['std'] = empty( $field['std'] ) ? __( 'Select an user', 'meta-box' ) : $field['std'];
+		/**
+		 * Prevent select tree for user since it's not hierarchical
+		 */
+		$field['field_type'] = 'select_tree' === $field['field_type'] ? 'select' : $field['field_type'];
 
+		/**
+		 * Set to always flat
+		 */
+		$field['flatten'] = true;
+
+		/**
+		 * Set default placeholder
+		 */
+		$field['placeholder'] = empty( $field['placeholder'] ) ? __( 'Select an user', 'meta-box' ) : $field['placeholder'];
+
+		/**
+		 * Set default query args
+		 */
 		$field['query_args'] = wp_parse_args( $field['query_args'], array(
 			'orderby' => 'display_name',
 			'order'   => 'asc',
@@ -50,15 +43,7 @@ class RWMB_User_Field extends RWMB_Select_Advanced_Field
 			'fields'  => 'all',
 		) );
 
-		switch ( $field['field_type'] )
-		{
-			case 'select':
-				return RWMB_Select_Field::normalize( $field );
-				break;
-			case 'select_advanced':
-			default:
-				return RWMB_Select_Advanced_Field::normalize( $field );
-		}
+		return $field;
 	}
 
 	/**
@@ -68,30 +53,37 @@ class RWMB_User_Field extends RWMB_Select_Advanced_Field
 	 *
 	 * @return array
 	 */
-	static function get_options( $field )
+	public static function get_options( $field )
 	{
-		$results = get_users( $field['query_args'] );
-		$options = array();
-		foreach ( $results as $result )
-		{
-			$options[$result->ID] = $result->display_name;
-		}
-
-		return $options;
+		$query = new WP_User_Query( $field['query_args'] );
+		return $query->get_results();
 	}
 
 	/**
-	 * Get option label to display in the frontend
+	 * Get field names of object to be used by walker
 	 *
-	 * @param int   $value Option value
-	 * @param int   $index Array index
-	 * @param array $field Field parameter
+	 * @return array
+	 */
+	public static function get_db_fields()
+	{
+		return array(
+			'parent' => 'parent',
+			'id'     => 'ID',
+			'label'  => 'display_name',
+		);
+	}
+
+	/**
+	 * Get option label
+	 *
+	 * @param string   $value Option value
+	 * @param array    $field Field parameter
 	 *
 	 * @return string
 	 */
-	static function get_option_label( &$value, $index, $field )
+	public static function get_option_label( $field, $value )
 	{
 		$user  = get_userdata( $value );
-		$value = '<a href="' . get_author_posts_url( $value ) . '">' . $user->display_name . '</a>';
+		return '<a href="' . get_author_posts_url( $value ) . '">' . $user->display_name . '</a>';
 	}
 }

@@ -1,34 +1,19 @@
 <?php
-// Prevent loading this file directly
-defined( 'ABSPATH' ) || exit;
-
-class RWMB_Checkbox_List_Field extends RWMB_Multiple_Values_Field
+/**
+ * Checkbox list field class.
+ */
+class RWMB_Checkbox_List_Field extends RWMB_Input_List_Field
 {
 	/**
-	 * Get field HTML
-	 *
-	 * @param mixed $meta
+	 * Normalize parameters for field
 	 * @param array $field
-	 *
-	 * @return string
+	 * @return array
 	 */
-	static function html( $meta, $field )
+	static function normalize( $field )
 	{
-		$meta = (array) $meta;
-		$html = array();
-		$tpl  = '<label><input type="checkbox" class="rwmb-checkbox-list" name="%s" value="%s"%s> %s</label>';
+		$field['multiple'] = true;
+		$field = parent::normalize( $field );		
 
-		foreach ( $field['options'] as $value => $label )
-		{
-			$html[] = sprintf(
-				$tpl,
-				$field['field_name'],
-				$value,
-				checked( in_array( $value, $meta ), 1, false ),
-				$label
-			);
-		}
-
-		return implode( '<br>', $html );
+		return $field;
 	}
 }

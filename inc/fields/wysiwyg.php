@@ -1,19 +1,23 @@
 <?php
-// Prevent loading this file directly
-defined( 'ABSPATH' ) || exit;
 
+/**
+ * WYSIWYG (editor) field class.
+ */
 class RWMB_Wysiwyg_Field extends RWMB_Field
 {
+	/**
+	 * Array of cloneable editors.
+	 * @var array
+	 */
 	static $cloneable_editors = array();
 
 	/**
-	 * Enqueue scripts and styles
-	 *
-	 * @return void
+	 * Enqueue scripts and styles.
 	 */
 	static function admin_enqueue_scripts()
 	{
-		wp_enqueue_style( 'rwmb-meta-box-wysiwyg', RWMB_CSS_URL . 'wysiwyg.css', array(), RWMB_VER );
+		wp_enqueue_style( 'rwmb-wysiwyg', RWMB_CSS_URL . 'wysiwyg.css', array(), RWMB_VER );
+		wp_enqueue_script( 'rwmb-wysiwyg', RWMB_JS_URL . 'wysiwyg.js', array( 'jquery' ), RWMB_VER, true );
 	}
 
 	/**
@@ -23,7 +27,6 @@ class RWMB_Wysiwyg_Field extends RWMB_Field
 	 * @param mixed $old
 	 * @param int   $post_id
 	 * @param array $field
-	 *
 	 * @return string
 	 */
 	static function value( $new, $old, $post_id, $field )
@@ -32,7 +35,7 @@ class RWMB_Wysiwyg_Field extends RWMB_Field
 		{
 			$meta = $new;
 		}
-		else if ( $field['clone'] )
+		elseif ( $field['clone'] )
 		{
 			$meta = array_map( 'wpautop', $new );
 		}
@@ -49,7 +52,6 @@ class RWMB_Wysiwyg_Field extends RWMB_Field
 	 *
 	 * @param mixed $meta
 	 * @param array $field
-	 *
 	 * @return string
 	 */
 	static function html( $meta, $field )
@@ -58,25 +60,18 @@ class RWMB_Wysiwyg_Field extends RWMB_Field
 		ob_start();
 
 		$field['options']['textarea_name'] = $field['field_name'];
+		$attributes = self::get_attributes( $field );
 
 		// Use new wp_editor() since WP 3.3
-		wp_editor( $meta, $field['id'], $field['options'] );
+		wp_editor( $meta, $attributes['id'], $field['options'] );
 
-		$editor = ob_get_clean();
-		if ( $field['clone'] )
-		{
-			self::$cloneable_editors[$field['id']] = $editor;
-			add_action( 'admin_print_footer_scripts', array( __CLASS__, 'footer_scripts' ), 51 );
-		}
-
-		return $editor;
+		return ob_get_clean();
 	}
 
 	/**
 	 * Escape meta for field output
 	 *
 	 * @param mixed $meta
-	 *
 	 * @return mixed
 	 */
 	static function esc_meta( $meta )
@@ -88,7 +83,6 @@ class RWMB_Wysiwyg_Field extends RWMB_Field
 	 * Normalize parameters for field
 	 *
 	 * @param array $field
-	 *
 	 * @return array
 	 */
 	static function normalize( $field )
@@ -108,10 +102,5 @@ class RWMB_Wysiwyg_Field extends RWMB_Field
 		$field['options'] = apply_filters( 'rwmb_wysiwyg_settings', $field['options'] );
 
 		return $field;
-	}
-
-	static function footer_scripts()
-	{
-		echo '<script> var rwmb_cloneable_editors = ', wp_json_encode( self::$cloneable_editors ), ';</script>';
 	}
 }

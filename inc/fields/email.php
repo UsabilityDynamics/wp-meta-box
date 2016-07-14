@@ -1,25 +1,9 @@
 <?php
-// Prevent loading this file directly
-defined( 'ABSPATH' ) || exit;
-
+/**
+ * Email field class.
+ */
 class RWMB_Email_Field extends RWMB_Text_Field
 {
-	/**
-	 * Normalize parameters for field
-	 *
-	 * @param array $field
-	 *
-	 * @return array
-	 */
-	static function normalize( $field )
-	{
-		$field = parent::normalize( $field );
-
-		$field['attributes']['type']  = 'email';
-
-		return $field;
-	}
-
 	/**
 	 * Sanitize email
 	 *
@@ -30,18 +14,8 @@ class RWMB_Email_Field extends RWMB_Text_Field
 	 *
 	 * @return string
 	 */
-	static function value( $new, $old, $post_id, $field )
+	public static function value( $new, $old, $post_id, $field )
 	{
-		if ( $field['clone'] )
-		{
-			$new = (array) $new;
-			$new = array_map( 'sanitize_email', $new );
-		}
-		else
-		{
-			$new = sanitize_email( $new );
-		}
-
-		return $new;
+		return $field['clone'] ? array_map( 'sanitize_email', (array) $new ) : sanitize_email( $new );
 	}
 }
